@@ -1,5 +1,5 @@
 <project name="DragonConsole" default="dist-cleanup-build" basedir=".">
-  <property name="version"           value="3.0.2b" />
+  <property name="version"           value="3.0.3a" />
   <property name="src-jar.name"      value="DragonConsole-src-${version}.jar" />
   <property name="bin-only-jar.name" value="DragonConsole-bin-only-${version}.jar" />
   <property name="lib-jar.name"      value="DragonConsole-lib-${version}.jar" />

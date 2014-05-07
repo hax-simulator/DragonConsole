@@ -92,7 +92,7 @@ import java.awt.datatransfer.DataFlavor;;
  *
  * @author Brandon E Buck
  * @since October 30, 2009
- * @version 3.0.0
+ * @version 3.0.3a
  */
 public class DragonConsole extends JPanel implements KeyListener, 
                                                        CaretListener,
@@ -111,13 +111,13 @@ public class DragonConsole extends JPanel implements KeyListener,
     /** 
      * Minor Change/Bug Fix number, does not include additional features.
      */
-    private static final String BUG_FIX = "2";
+    private static final String BUG_FIX = "3";
 
     /**
      * The Version Tag is "b" for Beta or "a" for Alpha, if it's a full release
      * it's blank.
      */
-    private static final String VER_TAG = "b";
+    private static final String VER_TAG = "a";
 
     // Default Finals
     /** 
@@ -735,12 +735,14 @@ public class DragonConsole extends JPanel implements KeyListener,
 
     /** 
      * This method aids outside interfaces (such as DragonConsoleFrame) by
-     * allowing it to give Focus to the inputArea. This method is only useful
-     * if <code>useInlineInput</code> is <code>false</code>.
+     * allowing it to give Focus to the inputArea or consolePane, depending
+     * on the state of <code>useInlineInput</code>.
      */
     public void setInputFocus() {
         if (!useInlineInput)
             inputArea.requestFocusInWindow();
+        else
+        	consolePane.requestFocusInWindow();
     }
 
     /** 
@@ -825,6 +827,14 @@ public class DragonConsole extends JPanel implements KeyListener,
 
         commandProcessor = newCommandProcessor;
         commandProcessor.install(this);
+    }
+
+    /**
+     * Returns the command processor that this console currently sends input to.
+     * @return command processor assigned to this console
+     */
+    public CommandProcessor getCommandProcessor() {
+    	return commandProcessor;
     }
 
     /** 
@@ -1334,8 +1344,7 @@ public class DragonConsole extends JPanel implements KeyListener,
             if (inputCarryOver && inputControl.hasStoredInput())
                 inputControl.restoreInput();
 
-            if (alwaysKeepScrollBarMaxed || !alwaysKeepScrollBarMaxed && isScrollBarAtMax)
-                setScrollBarMax();
+            setScrollBarMax();
         }
         else {
             consolePane.setCaretPosition(0);
@@ -1351,6 +1360,8 @@ public class DragonConsole extends JPanel implements KeyListener,
      * UI and change the JScrollBars value.
      */
     protected void setScrollBarMax() {
+    	if (!(alwaysKeepScrollBarMaxed || (!alwaysKeepScrollBarMaxed && isScrollBarAtMax))) return;
+    	ignoreAdjustment = true;
         final JScrollBar vBar = consoleScrollPane.getVerticalScrollBar();
         final DragonConsole console = this;
         if (isScrollBarAtMax) {
@@ -1468,6 +1479,49 @@ public class DragonConsole extends JPanel implements KeyListener,
         }
     }
 
+    /**
+     * This method sets the number of previous entries 
+     * that are stored by the console.
+     * @param numberOfPreviousEntries
+     */
+    public void setNumberOfPreviousEntries(int numberOfPreviousEntries) {
+    	this.numberOfPreviousEntries = numberOfPreviousEntries;
+    }
+    
+    /**
+     * Retrieves the next item from the list of stored previous entries.
+     * Traverses the list of previous entries from newest to oldest one.
+     */
+    protected void decrementPreviousEntry() {
+    	 if (!useInlineInput
+                 || (useInlineInput
+                    && inputControl.isReceivingInput()
+                    && inputControl.isInfiniteInput())) {
+             currentPreviousEntry--;
+             if (currentPreviousEntry < 0)
+                 currentPreviousEntry = 0;
+
+             setPreviousEntryText();
+         }
+    }
+    
+    /**
+     * Retrieves the previous item from the list of stored previous entries
+     * Traverses the list of previous entries from oldest to newest one.
+     */
+    protected void incrementPreviousEntry() {
+    	if (!useInlineInput
+                || (useInlineInput
+                   && inputControl.isReceivingInput()
+                   && inputControl.isInfiniteInput())) {
+        	currentPreviousEntry++;
+            if (currentPreviousEntry >= previousEntries.size())
+                currentPreviousEntry = previousEntries.size();
+            
+            setPreviousEntryText();
+        }
+    }
+
     /** 
      * This method adds a Previous Entry (the current input that has just been
      * received by the console) to the list of previous entries, and then resets
@@ -1502,10 +1556,7 @@ public class DragonConsole extends JPanel implements KeyListener,
                 inputControl.setInput(text);
         } else {
             inputArea.setText(text);
-            if (alwaysKeepScrollBarMaxed || (!alwaysKeepScrollBarMaxed && isScrollBarAtMax)) {
-                ignoreAdjustment = true;
-                setScrollBarMax();
-            }
+            setScrollBarMax();
         }
     }
 
@@ -1531,79 +1582,58 @@ public class DragonConsole extends JPanel implements KeyListener,
      */
     public void keyPressed(KeyEvent e) {
         if (!useInlineInput) {
-            if (alwaysKeepScrollBarMaxed || (!alwaysKeepScrollBarMaxed && isScrollBarAtMax)) {
-                JScrollBar vBar = consoleScrollPane.getVerticalScrollBar();
-                ignoreAdjustment = true;
-                setScrollBarMax();
-            }
+        	setScrollBarMax();
         }
 
-        if (e.getKeyCode() == KeyEvent.VK_TAB)
-            e.consume();
-
-        if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-            if (!ignoreInput) {
-                if (useInlineInput) {
-                    e.consume();
-                    boolean isProtected = inputControl.isProtected();
-                    String input = inputControl.getInput();
-                    
-                    if (commandProcessor != null)
-                        commandProcessor.processCommand(input);
-                    else
-                        appendWithoutProcessing(input);
-
-                    if (!(isProtected))
-                        addPreviousEntry(input);
-                    
-                } else {
-                    if ((!inputFieldNewLine) || !(e.isShiftDown())) {
+        switch (e.getKeyCode()) {
+        	case KeyEvent.VK_TAB:
+        	break;
+        	case KeyEvent.VK_ENTER:
+        		if (!ignoreInput) {
+                    if (useInlineInput) {
                         e.consume();
+                        boolean isProtected = inputControl.isProtected();
+                        String input = inputControl.getInput();
 
-                        String input = inputArea.getText();
-                        inputArea.setText("");
                         if (commandProcessor != null)
                             commandProcessor.processCommand(input);
                         else
                             appendWithoutProcessing(input);
 
-                        addPreviousEntry(input);
+                        if (!(isProtected))
+                            addPreviousEntry(input);
 
                     } else {
-                        inputArea.append("\n");
+                        if ((!inputFieldNewLine) || !(e.isShiftDown())) {
+                            e.consume();
+
+                            String input = inputArea.getText();
+                            inputArea.setText("");
+                            if (commandProcessor != null)
+                                commandProcessor.processCommand(input);
+                            else
+                                appendWithoutProcessing(input);
+
+                            addPreviousEntry(input);
+
+                        } else {
+                            inputArea.append("\n");
+                        }
                     }
                 }
-            }
-        }
-
-        if ((e.getKeyCode() == KeyEvent.VK_RIGHT) && e.isShiftDown()) {
-            e.consume();
-
-            if (!useInlineInput
-                    || (useInlineInput
-                       && inputControl.isReceivingInput()
-                       && inputControl.isInfiniteInput())) {
-                currentPreviousEntry--;
-                if (currentPreviousEntry < 0)
-                    currentPreviousEntry = previousEntries.size();
-
-                setPreviousEntryText();
-            }
-        }
-
-        if ((e.getKeyCode() == KeyEvent.VK_LEFT) && (e.isShiftDown())) {
-            e.consume();
-
-            if (!useInlineInput
-                    || (useInlineInput
-                       && inputControl.isReceivingInput()
-                       && inputControl.isInfiniteInput())) {
-            currentPreviousEntry++;
-                if (currentPreviousEntry >= previousEntries.size())
-                    currentPreviousEntry = previousEntries.size();
-                
-                setPreviousEntryText();
-            }
+        	break;
+        	case KeyEvent.VK_RIGHT:
+        		if (e.isShiftDown()) {
+	        		e.consume();
+	            	decrementPreviousEntry();
+        		}
+        	break;
+        	case KeyEvent.VK_LEFT:
+        		if (e.isShiftDown()) {
+	        		e.consume();
+	        		incrementPreviousEntry();
+        		}
+        	break;
         }
     }
 
