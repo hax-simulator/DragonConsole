@@ -1,6 +1,8 @@
 <project name="DragonConsole" default="dist-cleanup-build" basedir=".">
-  <property name="src-jar.name"      value="DragonConsole-src.jar" />
-  <property name="bin-only-jar.name" value="DragonConsole-bin-only.jar" />
+  <property name="version"           value="3.0.2b" />
+  <property name="src-jar.name"      value="DragonConsole-src-${version}.jar" />
+  <property name="bin-only-jar.name" value="DragonConsole-bin-only-${version}.jar" />
+  <property name="lib-jar.name"      value="DragonConsole-lib-${version}.jar" />
   
   <target name="clean" depends="cleanup-build">
     <delete>
@@ -14,7 +16,9 @@
     </delete>
   </target>
   
-  <target name="dist-cleanup-build" depends="dist,cleanup-build">
+  <target name="dist-cleanup-build">
+  	<antcall target="dist"/>
+  	<antcall target="cleanup-build"/>
   </target>
   
   <target name="dist" depends="clean">
@@ -24,6 +28,8 @@
         <exclude name="**/*.jar" />
         <exclude name="**/*.java" />
         <exclude name="build.xml" />
+      	<exclude name="bin/" />
+      	<exclude name=".*" />
       </fileset>
       <manifest>
 	      <attribute name="Main-Class" value="Main" />
@@ -33,10 +39,21 @@
       <fileset dir=".">
         <exclude name="**/*.jar" />
         <exclude name="build.xml" />
+      	<exclude name="bin/" />
+      	<exclude name=".*" />
       </fileset>
       <manifest>
 	      <attribute name="Main-Class" value="Main" />
       </manifest>
+    </jar>
+  	<jar destfile="${lib-jar.name}" >
+      <fileset dir=".">
+        <exclude name="**/*.jar" />
+        <exclude name="**/*.java" />
+        <exclude name="build.xml" />
+      	<exclude name="bin/" />
+      	<exclude name="*" />
+      </fileset>
     </jar>
   </target>
 </project>
