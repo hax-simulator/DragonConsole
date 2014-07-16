@@ -1557,11 +1557,14 @@ public class DragonConsole extends JPanel implements KeyListener,
      */
     private void addPreviousEntry(String entry) {
     	if (entry != null && entry.length() > 0) {
-	        previousEntries.add(entry);
-	        if (previousEntries.size() > numberOfPreviousEntries)
-	            previousEntries.remove(0);
-
-	        currentPreviousEntry = previousEntries.size();
+    		int size = previousEntries.size();
+    		if (size == 0 || !entry.equals(previousEntries.get(size - 1))) {
+		        previousEntries.add(entry);
+		        size++;
+		        if (size > numberOfPreviousEntries)
+		            previousEntries.remove(0);
+    		}
+    		currentPreviousEntry = size;
     	}
     }
 
