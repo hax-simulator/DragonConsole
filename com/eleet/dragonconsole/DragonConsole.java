@@ -41,6 +41,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.text.AbstractDocument;
@@ -118,7 +119,7 @@ import com.eleet.dragonconsole.util.TextColor;
  *
  * @author Brandon E Buck
  * @since October 30, 2009
- * @version 3.0.3a
+ * @version 3.0.3a_03
  */
 public class DragonConsole extends JPanel implements KeyListener,
                                                        CaretListener,
@@ -143,7 +144,7 @@ public class DragonConsole extends JPanel implements KeyListener,
      * The Version Tag is "b" for Beta or "a" for Alpha, if it's a full release
      * it's blank.
      */
-    private static final String VER_TAG = "a";
+    private static final String VER_TAG = "a_03";
 
     // Default Finals
     /**
@@ -1391,10 +1392,9 @@ public class DragonConsole extends JPanel implements KeyListener,
         final JScrollBar vBar = consoleScrollPane.getVerticalScrollBar();
         final DragonConsole console = this;
         if (isScrollBarAtMax) {
-            new Thread() {
-                public void run() {
+        	SwingUtilities.invokeLater(new Runnable() {
+        		public void run() {
                     try {
-                        sleep(80); // Time out for a tenth of a second
                         if (vBar.isVisible())
                             vBar.setValue(vBar.getMaximum() - vBar.getModel().getExtent());
 
@@ -1406,8 +1406,8 @@ public class DragonConsole extends JPanel implements KeyListener,
                               + exc.getMessage(),
                               "Error Caught", JOptionPane.ERROR_MESSAGE);
                     }
-                }
-            }.start();
+    			}
+        	});
         }
     }
 
