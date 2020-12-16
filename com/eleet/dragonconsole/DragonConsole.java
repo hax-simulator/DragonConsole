@@ -119,7 +119,7 @@ import com.eleet.dragonconsole.util.TextColor;
  *
  * @author Brandon E Buck
  * @since October 30, 2009
- * @version 3.1.0a_01
+ * @version 3.1.0a_02
  */
 public class DragonConsole extends JPanel implements KeyListener,
                                                        CaretListener,

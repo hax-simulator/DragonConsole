@@ -146,7 +146,7 @@ public class ANSI {
                     case 45:
                     case 46:
                     case 47:
-                        StyleConstants.setBackground(ANSI, getColorFromANSICode(code, false));
+                        StyleConstants.setBackground(ANSI, getColorFromANSICode(code, brighter));
                         break;
                     case 48:
                     	try {
