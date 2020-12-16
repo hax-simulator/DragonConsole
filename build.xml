@@ -22,7 +22,7 @@
   </target>
   
   <target name="dist" depends="clean">
-    <javac includeantruntime="false" srcdir="." />
+    <javac includeantruntime="false" srcdir="." source="1.7" target="1.7"/>
     <jar destfile="${bin-only-jar.name}" >
       <fileset dir=".">
         <exclude name="**/*.jar" />
