@@ -82,14 +82,14 @@ import com.eleet.dragonconsole.util.TextColor;
  * Dark Cyan    C               ANSI.CYAN
  * Gray         x (Default)     ANSI.WHITE
  * Dark Gray    X               ANSI.INTENSE_BLACK
- * Purple       p               DragonConsole.INTENSE_PURPLE
- * Dark Purple  P               DragonConsole.PURPLE
- * Gold         d               DragonConsole.INTENSE_GOLD
- * Dark Gold    D               DragonConsole.GOLD
+ * Purple       p               ANSI.INTENSE_PURPLE
+ * Dark Purple  P               ANSI.PURPLE
+ * Gold         d               ANSI.INTENSE_GOLD
+ * Dark Gold    D               ANSI.GOLD
  * Black        b               ANSI.BLACK
  * White        w               ANSI.INTENSE_WHITE
- * Orange       o               DragonConsole.INTENSE_ORANGE
- * Dark Orange  O               DragonCOnsole.ORANGE
+ * Orange       o               ANSI.INTENSE_ORANGE
+ * Dark Orange  O               ANSI.ORANGE
  * </pre><br />
  * There are two unique characters that cannot be used as Color codes since they
  * are used for style control. That is "0" which is used in "&00" which is the
@@ -119,7 +119,7 @@ import com.eleet.dragonconsole.util.TextColor;
  *
  * @author Brandon E Buck
  * @since October 30, 2009
- * @version 3.0.3a_03
+ * @version 3.1.0a_01
  */
 public class DragonConsole extends JPanel implements KeyListener,
                                                        CaretListener,
@@ -133,12 +133,12 @@ public class DragonConsole extends JPanel implements KeyListener,
     /**
      * Minor Update/Sub-Version number, usually comes with additional features.
      */
-    private static final String SUB_VER = "0";
+    private static final String SUB_VER = "1";
 
     /**
      * Minor Change/Bug Fix number, does not include additional features.
      */
-    private static final String BUG_FIX = "4";
+    private static final String BUG_FIX = "0";
 
     /**
      * The Version Tag is "b" for Beta or "a" for Alpha, if it's a full release
@@ -156,36 +156,6 @@ public class DragonConsole extends JPanel implements KeyListener,
      * The Default Height of the DragonConsole JPanel
      */
     private static final int DEFAULT_HEIGHT = 450;
-
-    /**
-     * The Intense Color Orange, as used as a Default TextColor
-     */
-    public static final Color INTENSE_ORANGE = Color.ORANGE;
-
-    /**
-     * The Color Orange, as used as a Default TextColor
-     */
-    public static final Color ORANGE = Color.ORANGE.darker();
-
-    /**
-     * The Intense Color Purple, as used as a Default TextColor
-     */
-    public static final Color INTENSE_PURPLE = new Color(128, 0, 255);
-
-    /**
-     * The Color Purple, as used as a Default TextColor
-     */
-    public static final Color PURPLE = INTENSE_PURPLE.darker();
-
-    /**
-     * The Intense Color Gold, as used as a Default TextColor
-     */
-    public static final Color INTENSE_GOLD = new Color(241, 234, 139);
-
-    /**
-     * The Color Gold, as used as a Default TextColor
-     */
-    public static final Color GOLD = INTENSE_GOLD.darker();
 
     // GUI
     /**
@@ -945,13 +915,13 @@ public class DragonConsole extends JPanel implements KeyListener,
             addTextColor('m', ANSI.INTENSE_MAGENTA); // Magenta
             addTextColor('M', ANSI.MAGENTA); // Dark Magenta
 
-            // DC Only Colors
-            addTextColor('o', INTENSE_ORANGE); // Orange
-            addTextColor('O', ORANGE); // Orange
-            addTextColor('p', INTENSE_PURPLE); // Purple
-            addTextColor('P', PURPLE); // Dark Purple
-            addTextColor('d', INTENSE_GOLD); // Gold
-            addTextColor('D', GOLD); // Dark Gold
+            // Extended ANSI Colors
+            addTextColor('o', ANSI.INTENSE_ORANGE); // Orange
+            addTextColor('O', ANSI.ORANGE); // Orange
+            addTextColor('p', ANSI.INTENSE_PURPLE); // Purple
+            addTextColor('P', ANSI.PURPLE); // Dark Purple
+            addTextColor('d', ANSI.INTENSE_GOLD); // Gold
+            addTextColor('D', ANSI.GOLD); // Dark Gold
 
             // Black and White -- Single colors (no dark version)
             addTextColor('b', ANSI.BLACK); // Black

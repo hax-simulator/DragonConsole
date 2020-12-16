@@ -28,7 +28,7 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 
-/** 
+/**
  * ANSI is a helper class that will process and create a
  * SimpleAttributeSet that has the color settings from a given String and
  * return it to the calling function. This is used to allow the DragonConsole
@@ -42,31 +42,36 @@ import javax.swing.text.StyleConstants;
 public class ANSI {
     public static final String ESCAPE = "\033"; // ANSI Escape Character that starts commands
 
-    public static final Color BLACK = Color.BLACK;           
-    public static final Color RED = Color.RED.darker();    
-    public static final Color GREEN = Color.GREEN.darker();  
-    public static final Color YELLOW = Color.YELLOW.darker(); 
-    public static final Color BLUE = new Color(66, 66, 255).darker();  
-    public static final Color MAGENTA = Color.MAGENTA.darker();
-    public static final Color CYAN = Color.CYAN.darker();   
-    public static final Color WHITE = Color.GRAY.brighter(); 
+    public static final Color[] COLOR_TABLE;
 
-    public static final Color INTENSE_BLACK = Color.GRAY.darker(); 
-    public static final Color INTENSE_RED = Color.RED;             
-    public static final Color INTENSE_GREEN = Color.GREEN;           
-    public static final Color INTENSE_YELLOW = Color.YELLOW;          
-    public static final Color INTENSE_BLUE = new Color(66, 66, 255);
-    public static final Color INTENSE_MAGENTA = Color.MAGENTA;         
-    public static final Color INTENSE_CYAN = Color.CYAN;            
-    public static final Color INTENSE_WHITE = Color.WHITE;           
+    public static final Color BLACK;
+    public static final Color RED;
+    public static final Color GREEN;
+    public static final Color YELLOW;
+    public static final Color BLUE;
+    public static final Color MAGENTA;
+    public static final Color CYAN;
+    public static final Color WHITE;
 
-    private static final Color normal[] = {BLACK, RED, GREEN, YELLOW, BLUE,
-            MAGENTA, CYAN, WHITE};
-    private static final Color bright[] = {INTENSE_BLACK, INTENSE_RED, 
-            INTENSE_GREEN, INTENSE_YELLOW, INTENSE_BLUE, INTENSE_MAGENTA,
-            INTENSE_CYAN, INTENSE_WHITE};
+    public static final Color INTENSE_BLACK;
+    public static final Color INTENSE_RED;
+    public static final Color INTENSE_GREEN;
+    public static final Color INTENSE_YELLOW;
+    public static final Color INTENSE_BLUE;
+    public static final Color INTENSE_MAGENTA;
+    public static final Color INTENSE_CYAN;
+    public static final Color INTENSE_WHITE;
 
-    /** 
+
+    public static final Color INTENSE_ORANGE;
+    public static final Color ORANGE;
+
+    public static final Color INTENSE_PURPLE;
+    public static final Color PURPLE;
+    public static final Color INTENSE_GOLD;
+    public static final Color GOLD;
+
+    /**
      * Takes an ANSI Code as a String and breaks it apart and then creates a
      * SimpleAttributeSet with the proper Foreground and Background color.
      * @param old The current ANSI Style so any changes not specified are
@@ -84,7 +89,7 @@ public class ANSI {
 
         if (ANSI == null)
             ANSI = new SimpleAttributeSet();
-        
+
         if (string.length() > 3) {
             string = string.substring(2); // Cut off the "\033[";
             string = string.substring(0, string.length() - 1); // Remove the "m" from the end
@@ -118,6 +123,18 @@ public class ANSI {
                     case 37:
                         StyleConstants.setForeground(ANSI, getColorFromANSICode(code, brighter));
                         break;
+                    case 38:
+                    	try {
+                    		if ("5".equals(codes[i+1])) {
+                    			StyleConstants.setForeground(ANSI, COLOR_TABLE[Integer.parseInt(codes[i+2])]);
+                    			i+=2;
+                    		} else if ("2".equals(codes[i+1])) {
+                    			StyleConstants.setForeground(ANSI, new Color(Integer.parseInt(codes[i+2]), Integer.parseInt(codes[i+3]), Integer.parseInt(codes[i+4])));
+                    			i+=4;
+                    		}
+                    	} catch (ArrayIndexOutOfBoundsException|NumberFormatException e) {
+                    	}
+                    	break;
                     case 39:
                         StyleConstants.setForeground(ANSI, StyleConstants.getForeground(defaultStyle));
                         break;
@@ -131,6 +148,18 @@ public class ANSI {
                     case 47:
                         StyleConstants.setBackground(ANSI, getColorFromANSICode(code, false));
                         break;
+                    case 48:
+                    	try {
+                    		if ("5".equals(codes[i+1])) {
+                    			StyleConstants.setBackground(ANSI, COLOR_TABLE[Integer.parseInt(codes[i+2])]);
+                    			i+=2;
+                    		} else if ("2".equals(codes[i+1])) {
+                    			StyleConstants.setBackground(ANSI, new Color(Integer.parseInt(codes[i+2]), Integer.parseInt(codes[i+3]), Integer.parseInt(codes[i+4])));
+                    			i+=4;
+                    		}
+                    	} catch (ArrayIndexOutOfBoundsException|NumberFormatException e) {
+                    	}
+                    	break;
                     case 49:
                         StyleConstants.setBackground(ANSI, StyleConstants.getBackground(defaultStyle));
                         break;
@@ -141,7 +170,7 @@ public class ANSI {
         return ANSI;
     }
 
-    /** 
+    /**
      * Takes a String containing a DCCC and convert it into its equivalent
      * ANSI Color Code. It does this by comparing the color associated with
      * the characters in the DCCC to the ANSI colors until it finds a match and
@@ -158,7 +187,7 @@ public class ANSI {
             DCCode = DCCode.substring(1); // Remove the & from the code
             char foreground = DCCode.charAt(0);
             char background = DCCode.charAt(1);
-            
+
             String code = ESCAPE + "[0;";
 
             if (foreground == '0')
@@ -170,15 +199,24 @@ public class ANSI {
                     TextColor tc = null;
                     if (colors.get(i).equals(TextColor.getTestTextColor(foreground))) {
                         tc = colors.get(i);
-                        for (int x = 0; x < normal.length; x++) {
-                            if (tc.getColor().equals(normal[x])) {
-                                code += "3" + x;
-                                break; // Found, no need to continue
+                        for (int x = 0; x < COLOR_TABLE.length; x++) {
+                        	if (x < 8) {
+                        		if (tc.getColor().equals(COLOR_TABLE[x])) {
+                                    code += "3" + x;
+                                    break; // Found, no need to continue
 
-                            } else if (tc.getColor().equals(bright[x])) {
-                                code += "1;3" + x;
-                                break; // Found, no need to continue
-                            }
+                                } else if (tc.getColor().equals(COLOR_TABLE[x+8])) {
+                                    code += "1;3" + x;
+                                    break; // Found, no need to continue
+                                }
+                        	} else if (x == 8) {
+                        		x = 15;
+                        	} else if (x >= 16) {
+                        		if (tc.getColor().equals(COLOR_TABLE[x])) {
+                        			code += "38;5;" + x;
+                                    break; // Found, no need to continue
+                        		}
+                        	}
                         }
                         break; // Found, no need to continue
                     }
@@ -197,15 +235,24 @@ public class ANSI {
                     TextColor tc = null;
                     if (colors.get(i).equals(TextColor.getTestTextColor(background))) {
                         tc = colors.get(i);
-                        for (int x = 0; x < normal.length; x++) {
-                            if (tc.getColor() == normal[x]) {
-                                code += "4" + x;
-                                break; // Found, no need to continue
+                        for (int x = 0; x < COLOR_TABLE.length; x++) {
+                        	if (x < 8) {
+                        		if (tc.getColor().equals(COLOR_TABLE[x])) {
+                                    code += "4" + x;
+                                    break; // Found, no need to continue
 
-                            } else if (tc.getColor().equals(bright[x])) {
-                                code += "4" + x;
-                                break; // Found, no need to continue
-                            }
+                                } else if (tc.getColor().equals(COLOR_TABLE[x+8])) {
+                                    code += "1;4" + x;
+                                    break; // Found, no need to continue
+                                }
+                        	} else if (x == 8) {
+                            	x = 15;
+                        	} else if (x >= 16) {
+                        		if (tc.getColor().equals(COLOR_TABLE[x])) {
+                        			code += "48;5;" + x;
+                                    break; // Found, no need to continue
+                        		}
+                        	}
                         }
                         break; // Found, no need to continue
                     }
@@ -224,7 +271,7 @@ public class ANSI {
         return ESCAPE + "[39;49m";
     }
 
-    /** 
+    /**
      * Takes a String containing multiple DCCCs (like standard output for the
      * console) and replaces the DCCC with it's equivalent ANSI Code and returns
      * the String containing the ANSI Codes. This method uses
@@ -248,10 +295,10 @@ public class ANSI {
 
                 } else {
                     String code = buffer.substring(i, (i + 3));
-                    
+
                     code = getANSICodeFromDCCode(code, colors);
                     int length = code.length();
-                    
+
                     buffer = buffer.replace(i, (i + 3), code);
                     i = i + length - 1;
                 }
@@ -261,7 +308,7 @@ public class ANSI {
         return buffer.toString();
     }
 
-    /** 
+    /**
      * Takes a String containing an ANSI Code and returns it's equivalent DCCC.
      * It does this by comparing the Color associated to the ANSI code to each
      * code contained in the list of TextColors and upon a successful match it
@@ -282,7 +329,7 @@ public class ANSI {
         code = code.substring(2, code.length()); // Cut off the "\033[" and "m"
         char foreground = ' ';
         char background = ' ';
-        
+
         String colorCodes[] = code.split(";");
         for (int i = 0; i < colorCodes.length; i++) {
             if (colorCodes[i].matches("[\\d]*")) {
@@ -311,11 +358,11 @@ public class ANSI {
             foreground = defaultStyle.charAt(0);
         if (background == ' ')
             background = defaultStyle.charAt(1);
-        
+
         return "" + colorCodeChar + foreground + background;
     }
 
-    /** 
+    /**
      * Takes a Color and finds it's corresponding TextColor in the list of
      * TextColors that have been added to the Console (if there is one) and
      * returns the <code>charCode</code> associated with the Color given. If
@@ -339,7 +386,7 @@ public class ANSI {
         return ' ';
     }
 
-    /** 
+    /**
      * Takes a String containing ANSI Codes and converts replaces the ANSI code
      * with it's equivalent DCCC.
      * @param string The String containing then ANSI code the programmer wishes
@@ -352,7 +399,7 @@ public class ANSI {
      * @return Returns the String after each ANSI Code has been converted to
      *  it's DCCC equivalent.
      */
-    public static String convertANSIToDCColors(String string, 
+    public static String convertANSIToDCColors(String string,
             ArrayList<TextColor> colors, char colorCodeChar,
             String defaultStyle) {
         StringBuilder buffer = new StringBuilder(string);
@@ -364,7 +411,7 @@ public class ANSI {
                     int end = i + code.length() + 1;
                     code = getDCCodeFromANSICode(code, colors, colorCodeChar,
                             defaultStyle);
-                    
+
                     buffer = buffer.replace(i, end, code);
                     i = i + 2;
                 }
@@ -374,7 +421,7 @@ public class ANSI {
         return buffer.toString();
     }
 
-    /** 
+    /**
      * This method returns the Color associated with the given ANSI Code, it
      * also takes a boolean to test for color intensity. Returns null if
      * no color is found.
@@ -437,5 +484,61 @@ public class ANSI {
             default:
                 return null;
         }
+    }
+
+    static {
+    	COLOR_TABLE = new Color[256];
+    	int index = 0;
+    	COLOR_TABLE[index++] = Color.BLACK;
+    	COLOR_TABLE[index++] = Color.RED.darker();
+    	COLOR_TABLE[index++] = Color.GREEN.darker();
+    	COLOR_TABLE[index++] = Color.YELLOW.darker();
+    	COLOR_TABLE[index++] = new Color(66, 66, 255).darker();
+    	COLOR_TABLE[index++] = Color.MAGENTA.darker();
+    	COLOR_TABLE[index++] = Color.CYAN.darker();
+    	COLOR_TABLE[index++] = Color.GRAY.brighter();
+
+    	COLOR_TABLE[index++] = Color.GRAY.darker();
+    	COLOR_TABLE[index++] = Color.RED;
+    	COLOR_TABLE[index++] = Color.GREEN;
+    	COLOR_TABLE[index++] = Color.YELLOW;
+    	COLOR_TABLE[index++] = new Color(66, 66, 255);
+    	COLOR_TABLE[index++] = Color.MAGENTA;
+    	COLOR_TABLE[index++] = Color.CYAN;
+    	COLOR_TABLE[index++] = Color.WHITE;
+
+    	int[] rgbValues = new int[] {0,95,135,175,215,255};
+    	for (int r = 0; r < rgbValues.length; r++)
+    		for (int g = 0; g < rgbValues.length; g++)
+    			for (int b = 0; b < rgbValues.length; b++)
+    				COLOR_TABLE[index++] = new Color(rgbValues[r], rgbValues[g], rgbValues[b]);
+
+    	for (int rgb = 8; rgb <= 238; rgb+=10)
+    		COLOR_TABLE[index++] = new Color(rgb, rgb, rgb);
+
+    	BLACK = COLOR_TABLE[0];
+	    RED = COLOR_TABLE[1];
+	    GREEN = COLOR_TABLE[2];
+	    YELLOW = COLOR_TABLE[3];
+	    BLUE = COLOR_TABLE[4];
+	    MAGENTA = COLOR_TABLE[5];
+	    CYAN = COLOR_TABLE[6];
+	    WHITE = COLOR_TABLE[7];
+
+	    INTENSE_BLACK = COLOR_TABLE[8];
+	    INTENSE_RED = COLOR_TABLE[9];
+	    INTENSE_GREEN = COLOR_TABLE[10];
+	    INTENSE_YELLOW = COLOR_TABLE[11];
+	    INTENSE_BLUE = COLOR_TABLE[12];
+	    INTENSE_MAGENTA = COLOR_TABLE[13];
+	    INTENSE_CYAN = COLOR_TABLE[14];
+	    INTENSE_WHITE = COLOR_TABLE[15];
+
+	    INTENSE_ORANGE = COLOR_TABLE[214];
+	    ORANGE = COLOR_TABLE[136];
+	    INTENSE_PURPLE = COLOR_TABLE[93];
+	    PURPLE = COLOR_TABLE[54];
+	    INTENSE_GOLD = COLOR_TABLE[227];
+	    GOLD = COLOR_TABLE[143];
     }
 }
